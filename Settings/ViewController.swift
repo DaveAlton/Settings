@@ -11,6 +11,8 @@ import UIKit
 class ViewController: UIViewController {
     @IBOutlet var tableView: UITableView!
     var awesomeMode = false
+    var faceIDAvailable = true
+    var faceIDOn = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,11 +27,23 @@ class ViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         self.present(alert, animated: true, completion: nil)
     }
+
+    func faceIDSwitchTapped() {
+        faceIDOn = !faceIDOn
+        guard faceIDOn else { return }
+        let alert = UIAlertController(title: "FaceID", message: "You just activated 'FaceID'", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
 }
 
 extension ViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 3
+        var cells = 3
+        if faceIDAvailable {
+            cells += 1
+        }
+        return cells
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -40,7 +54,14 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             cell.`switch`.setOn(awesomeMode, animated: false)
             cell.label.text = "Awesome Mode"
             return cell
-        } else if indexPath.row == 1 {
+        } else if (faceIDAvailable && indexPath.row == 1) {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+            cell.switchHandler = faceIDSwitchTapped
+            cell.isUserInteractionEnabled = true
+            cell.`switch`.setOn(faceIDOn, animated: false)
+            cell.label.text = "Use FaceID"
+            return cell
+        } else if (!faceIDAvailable && indexPath.row == 1) || (faceIDAvailable && indexPath.row == 2) {
             let cell = tableView.dequeueReusableCell(withIdentifier: "LabelCell", for: indexPath) as! LabelCell
             cell.isUserInteractionEnabled = true
             cell.accessoryType = .disclosureIndicator
