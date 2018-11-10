@@ -8,7 +8,15 @@
 
 import UIKit
 
-enum Settings {
+protocol SettingsCellProtocol {
+    var isUserInteractionEnabled: Bool { get set }
+    var accessoryType: UITableViewCell.AccessoryType { get set }
+    func setValue(_ value: Any?)
+    func setLabel(_ text: String)
+    func setInteraction(_ interaction: (() -> Void)?)
+}
+
+enum Setting {
     case awesomeMode, faceID, website, appVersion
 
     var reuseIdentifier: String {
@@ -50,10 +58,13 @@ enum Settings {
 
 class ViewController: UIViewController {
     @IBOutlet var tableView: UITableView!
+
     var awesomeMode = false
+
     var faceIDAvailable = true
     var faceIDOn = false
-    var settings = [Settings]()
+
+    var settings = [Setting]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -82,6 +93,10 @@ class ViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         self.present(alert, animated: true, completion: nil)
     }
+
+    func goToWebsite() {
+        UIApplication.shared.open(URL(string: "https://www.expedia.com")!, options: [:], completionHandler: nil)
+    }
 }
 
 extension ViewController: UITableViewDataSource, UITableViewDelegate {
@@ -91,28 +106,31 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let setting = settings[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: setting.reuseIdentifier, for: indexPath)
+        var cell = tableView.dequeueReusableCell(withIdentifier: setting.reuseIdentifier, for: indexPath) as! SettingsCellProtocol
         cell.isUserInteractionEnabled = setting.userInteractionEnabled
         cell.accessoryType = setting.accessoryType
-        (cell as? SwitchCell)?.label.text = setting.label
-        (cell as? LabelCell)?.label.text = setting.label
-
-        if setting == .awesomeMode {
-            (cell as? SwitchCell)?.switchHandler = awesomeSwitchTapped
-            (cell as? SwitchCell)?.`switch`.setOn(awesomeMode, animated: false)
-        } else if (faceIDAvailable && indexPath.row == 1) {
-            (cell as? SwitchCell)?.switchHandler = faceIDSwitchTapped
-            (cell as? SwitchCell)?.`switch`.setOn(faceIDOn, animated: false)
-        }
-
-        return cell
+        cell.setLabel(setting.label)
+        cell.setInteraction({
+            switch setting {
+            case .awesomeMode: self.awesomeSwitchTapped()
+            case .faceID:      self.faceIDSwitchTapped()
+            case .website:     self.goToWebsite()
+            case .appVersion:  return
+            }
+        })
+        
+        cell.setValue({
+            switch setting {
+            case .awesomeMode: return self.awesomeMode
+            case .faceID:      return self.faceIDOn
+            case .website:     return nil
+            case .appVersion:  return nil
+            }
+        }())
+        return cell as! UITableViewCell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: false)
-        let setting = settings[indexPath.row]
-        if setting == .website {
-            UIApplication.shared.open(URL(string: "https://www.expedia.com")!, options: [:], completionHandler: nil)
-        }
     }
 }

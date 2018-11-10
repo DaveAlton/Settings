@@ -9,11 +9,27 @@
 import UIKit
 
 class SwitchCell: UITableViewCell {
-    var switchHandler: (() -> Void)?
+    var interaction: (() -> Void)?
     @IBOutlet var label: UILabel!
     @IBOutlet var `switch`: UISwitch!
 
     @IBAction func switchToggled(_ sender: UISwitch) {
-        switchHandler?()
+        interaction?()
     }
+}
+
+extension SwitchCell: SettingsCellProtocol {
+    func setLabel(_ text: String) {
+        self.label.text = text
+    }
+
+    func setInteraction(_ interaction: (() -> Void)?) {
+        self.interaction = interaction
+    }
+
+    func setValue(_ value: Any?) {
+        self.`switch`.setOn((value as? Bool == true), animated: false)
+    }
+
+    
 }
