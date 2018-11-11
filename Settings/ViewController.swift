@@ -17,12 +17,13 @@ protocol SettingsCellProtocol {
 }
 
 enum Setting {
-    case awesomeMode, faceID, website, appVersion
+    case awesomeMode, faceID, debugMode, website, appVersion
 
     var reuseIdentifier: String {
         switch self {
         case .awesomeMode: return "SwitchCell"
         case .faceID:      return "SwitchCell"
+        case .debugMode:   return "SwitchCell"
         case .website:     return "LabelCell"
         case .appVersion:  return "LabelCell"
         }
@@ -32,6 +33,7 @@ enum Setting {
         switch self {
         case .awesomeMode: return true
         case .faceID:      return true
+        case .debugMode:   return true
         case .website:     return true
         case .appVersion:  return false
         }
@@ -41,6 +43,7 @@ enum Setting {
         switch self {
         case .awesomeMode: return "Awesome Mode"
         case .faceID:      return "FaceID"
+        case .debugMode:   return "Debug Mode"
         case .website:     return "Expedia.com"
         case .appVersion:  return "App Version: 2.0"
         }
@@ -50,6 +53,7 @@ enum Setting {
         switch self {
         case .awesomeMode: return .none
         case .faceID:      return .none
+        case .debugMode:   return .none
         case .website:     return .disclosureIndicator
         case .appVersion:  return .none
         }
@@ -64,6 +68,9 @@ class ViewController: UIViewController {
     var faceIDAvailable = true
     var faceIDOn = false
 
+    var isDeveloper = true
+    var debugMode = false
+
     var settings = [Setting]()
     
     override func viewDidLoad() {
@@ -73,9 +80,20 @@ class ViewController: UIViewController {
         if faceIDAvailable {
             settings += [.faceID]
         }
+        if isDeveloper {
+            settings += [.debugMode]
+        }
         settings += [.website, .appVersion]
 
         tableView.reloadData()
+    }
+
+    func useDebugMode() {
+        debugMode = !debugMode
+        guard debugMode else { return }
+        let alert = UIAlertController(title: "Debug mode", message: "You just activated 'Debug Mode'", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
     }
 
     func awesomeSwitchTapped() {
@@ -114,6 +132,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             switch setting {
             case .awesomeMode: self.awesomeSwitchTapped()
             case .faceID:      self.faceIDSwitchTapped()
+            case .debugMode:   self.useDebugMode()
             case .website:     self.goToWebsite()
             case .appVersion:  return
             }
@@ -123,6 +142,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             switch setting {
             case .awesomeMode: return self.awesomeMode
             case .faceID:      return self.faceIDOn
+            case .debugMode:   return self.debugMode
             case .website:     return nil
             case .appVersion:  return nil
             }
